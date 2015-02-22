@@ -77,14 +77,13 @@ function reload() {
 }
 
 reload();
+if (!config) process.exit(1);
 
 var bot = new irc.Client(config.server, config.botName, {
   channels:config.channels,
   userName:config.userName,
   realName:config.realName
 });
-
-if (!config) process.exit(1);
 
 bot.addListener('message', handleMessage);
 bot.addListener('error', console.log);
