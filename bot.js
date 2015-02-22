@@ -1,8 +1,82 @@
-var config = require("./config.js");
-var irc = require("./irc/irc.js");
-var fs = require('fs');
 
-var plugins = Array();
+var irc = require('./irc/irc.js');
+
+var Trigger = { Command: 'Command', Match: 'Match' };
+
+var config;
+var plugins;
+
+function say(to, from, msg) {
+  bot.say(to, msg);
+}
+
+function loadConfig() {
+  var cfg = null;
+  try {
+    cfg = require('./config.js');
+  } catch (e) {
+    console.log('Error loading config');
+    console.log(e);
+  }
+  return cfg;
+}
+
+function loadPlugin(plugin, cfg) {
+  var p = null;
+  try {
+    p = require('./plugins/' + plugin + '.js');
+    if (cfg && typeof p.init === 'function') {
+      p.init(cfg);
+    }
+  } catch(e) {
+    console.log('Error loading ' + plugin);
+    console.log(e);
+  }
+  return p;
+}
+
+function loadPlugins(config) {
+  var plugins = [];
+  var p;
+  for (pname in config.plugins) {
+    p = null;
+    if (typeof config.plugins[pname] === 'boolean') {
+      if (config.plugins[pname]) {
+        p = loadPlugin(pname);
+      }
+    } else if (config.plugins[pname].active) {
+      p = loadPlugin(pname, config.plugins[pname]);
+    }
+    if (p) plugins.push(p);
+  }
+  return plugins;
+}
+
+function handleMessage(from, to, text, msg) {
+  for (n in config.blacklist) {
+    if (n.toLowerCase() === from.toLowerCase()) return;
+  }
+  var ltext = text.toLowerCase();
+  for (p in plugins) {
+    var trigger = config.trigger + p.triggerText + ' ';
+    if (p.trigger === Trigger.Command && ltext.startsWith(trigger)) {
+      say(to, from, p.message(text));
+    } else if (p.trigger === Trigger.Match && ltext.match(p.triggerText)) {
+      say(to, from, p.message(text));
+    }
+  }
+}
+
+function reload() {
+  var cfg = loadConfig();
+  if (cfg) var plgns = loadPlugins(cfg);
+  if (cfg) config = cfg;
+  else console.log('Unable to reload config, using old one');
+  if (plgns) plugins = plgns;
+  else console.log('Unable to reload plugins');
+}
+
+reload();
 
 var bot = new irc.Client(config.server, config.botName, {
   channels:config.channels,
@@ -10,82 +84,9 @@ var bot = new irc.Client(config.server, config.botName, {
   realName:config.realName
 });
 
-bot.addListener('error', function(message) {
-    console.log(message);
-});
+if (!config) process.exit(1);
 
-// Auto Load All Plugins.
-var i = 0;
-require('fs').readdirSync(__dirname + '/plugins/').forEach(function(file) {
-  if (file.match(/.+\.js/g) !== null && file !== 'index.js') {
-    plugins[i] = require('./plugins/' + file);
+bot.addListener('message', handleMessage);
+bot.addListener('error', console.log);
 
-	if (typeof plugins[i].init == 'function') {
-		plugins[i].init(bot, config);
-	}
-
-	i++;
-  }
-});
-
-// Message Listener.
-bot.addListener("message", function (from, to, text, message){
-  /** blacklist code **/
-  if(config.blacklist.length>0) {
-    for(var i=0;i<config.blacklist.length;i++) {
-      if(config.blacklist[i].toLowerCase() === from.toLowerCase()) { return; }
-    }
-  }
-  /** end blacklist code **/
-    for(var i=0;i<plugins.length;i++)
-    {
-      if(typeof plugins[i].message == 'function'){
-        plugins[i].message(from, to, text, message, bot, config);
-      }
-    }
-});
-
-// Join event handler.
-bot.addListener("join", function (channel, nick, message) { 
-  for(var i=0;i<plugins.length;i++)
-    {
-      if(typeof plugins[i].join == 'function'){
-        plugins[i].join(channel, nick, message, bot, config);
-      }
-    }
-});
-
-// Part event handler.
-bot.addListener("part", function (channel, nick, message) { 
-  for(var i=0;i<plugins.length;i++)
-    {
-      if(typeof plugins[i].part == 'function'){
-        plugins[i].part(channel, nick, message, bot, config);
-      }
-    }
-});
-
-// Raw event handler.
-bot.addListener("raw", function (message) { 
-  for(var i=0;i<plugins.length;i++)
-    {
-      if(typeof plugins[i].raw == 'function'){
-        plugins[i].raw(message, bot, config);
-      }
-    }
-});
-
-// Action event handler.
-bot.addListener("action", function (from, to, message) { 
-  for(var i=0;i<plugins.length;i++)
-    {
-      if(typeof plugins[i].action == 'function'){
-        plugins[i].action(from, to, message, bot, config);
-      }
-    }
-});
-
-// Load the current nicks into the config event handler.
-bot.addListener("names", function (channel, nicks) { 
-  config.nicks[channel] = Object.keys(nicks);
-});
+process.on('SIGHUP', reload);
