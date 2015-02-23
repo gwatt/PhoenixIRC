@@ -33,7 +33,7 @@ function loadPlugin(plugin, cfg) {
     if (typeof cfg === 'boolean') {
       p.active = cfg;
     } else {
-      for (k in Object.keys(cfg)) {
+      for (k in cfg) {
         p[k] = cfg[k];
       }
     }
@@ -102,8 +102,8 @@ function matches(p, text) {
 }
 
 function handleMessage(from, to, text, msg) {
-  for (n in config.blacklist) {
-    if (config.blacklist[n].toLowerCase() === from.toLowerCase()) return;
+  for (n of config.blacklist) {
+    if (n.toLowerCase() === from.toLowerCase()) return;
   }
   text = text.split(/\s+/).join(' ');
   var ltext = text.toLowerCase();
@@ -118,8 +118,8 @@ function handleMessage(from, to, text, msg) {
 
 function authorized(name) {
   name = name.toLowerCase();
-  for (n in config.admins) {
-    if (name === config.admins[n].toLowerCase()) return true;
+  for (n of config.admins) {
+    if (name === n.toLowerCase()) return true;
   }
 }
 
@@ -144,8 +144,7 @@ function reload() {
 
 function findPlugin(name) {
   name = name.toLowerCase();
-  for (p in plugins) {
-    p = plugins[p];
+  for (p of plugins) {
     if (p.name.toLowerCase() === name) return p;
   }
 }
@@ -165,9 +164,9 @@ function help(name, to, from, send) {
     }
   } else {
     var active = [], inactive = [];
-    for (p in plugins) {
-      if (plugins[p].active) active.push(plugins[p].name);
-      else inactive.push(plugins[p].name);
+    for (p of plugins) {
+      if (p.active) active.push(p.name);
+      else inactive.push(p.name);
     }
     send(to, from, active.length + ' active plugins: ' + active.join(', '));
     send(to, from, inactive.length + ' inactive plugins: ' + inactive.join(', '));
@@ -196,6 +195,8 @@ function disable(name, to, from, send) {
     if (p.active && !p.permanent) {
       p.active = false;
       send(to, from, 'Deactivated ' + name);
+    } else if (p.permanent) {
+      send(to, from, 'Refusing to disable ' + name);
     } else {
       send(to, from, name + ' was already inactive');
     }
