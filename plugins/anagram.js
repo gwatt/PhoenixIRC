@@ -1,6 +1,7 @@
 var req = require('request');
 
-function anagram(bot, from, to, text) {
+function anagram(text, to, from, send) {
+  var resp;
   req.post({ url: 'http://www.sternestmeanings.com/say.json',
              form: { msg: text }
            },
@@ -8,21 +9,23 @@ function anagram(bot, from, to, text) {
              if (!error && response.statusCode === 200) {
                body = JSON.parse(body);
                if (toString.call(body) === "[object Array]") {
-                 bot.say(to, from + ': ' + body[0]);
+                 send(to, from, body[0]);
                } else {
-                 bot.say(to, from + ': "' + text + '" is an anagram for "' + body.message.response + '"');
+                 send(to, from, '"' + text + '" is an anagram for "' + body.message.response + '"');
                }
              } else {
-               bot.say(to, from + ": No anagram for you!");
+               send(to, from, "No anagram for you!");
              }
            }
   );
 }
 
-exports.message = function(from, to, text, message, bot, config) {
-  var trigger = '!anagram ';
-  if (config.plugins.anagram &&
-      text.toLowerCase().indexOf(trigger.toLowerCase()) === 0) {
-    anagram(bot, from, to, text.substring(trigger.length));
-  }
+module.exports = function(Trigger) {
+  return {
+    message: anagram,
+    trigger: Trigger.Command,
+    triggerText: 'anagram',
+    name: 'Anagram',
+    desc: 'Returns an anagram of the message text'
+  };
 };
