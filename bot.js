@@ -72,9 +72,15 @@ function handleMessage(from, to, text, msg) {
 function reload() {
   var cfg = loadConfig();
   if (cfg) var plgns = loadPlugins(cfg);
-  if (cfg) config = cfg;
+  if (cfg) {
+    config = cfg;
+    console.log('Loaded configs');
+  }
   else console.log('Unable to reload config, using old one');
-  if (plgns) plugins = plgns;
+  if (plgns) {
+    plugins = plgns;
+    console.log('Loaded plugins');
+  }
   else console.log('Unable to reload plugins');
 }
 
