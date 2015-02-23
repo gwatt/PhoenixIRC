@@ -54,17 +54,28 @@ function loadPlugins(config) {
   return plugins;
 }
 
+function matches(p, text) {
+  var match = false;
+  var trigger = config.trigger + p.triggerText;
+  if (p.trigger === Trigger.Command && text.split(/\s+/)[0] === trigger) {
+    match = trigger.length + 1;
+  } else if (p.trigger === Trigger.Match && text.match(p.triggerText)) {
+    match = 0;
+  }
+  return match;
+}
+
 function handleMessage(from, to, text, msg) {
   for (n in config.blacklist) {
-    if (n.toLowerCase() === from.toLowerCase()) return;
+    if (config.blacklist[n].toLowerCase() === from.toLowerCase()) return;
   }
+  text = text.split(/\s+/).join(' ');
   var ltext = text.toLowerCase();
   for (p in plugins) {
-    var trigger = config.trigger + p.triggerText + ' ';
-    if (p.trigger === Trigger.Command && ltext.startsWith(trigger)) {
-      say(to, from, p.message(text));
-    } else if (p.trigger === Trigger.Match && ltext.match(p.triggerText)) {
-      say(to, from, p.message(text));
+    p = plugins[p];
+    var m = matches(p, ltext);
+    if (m !== false) {
+      p.message(text.substring(m), to, from, say);
     }
   }
 }
