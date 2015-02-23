@@ -19,10 +19,17 @@ beerArray = [
 ];
 
 //MESSAGE EVENT
-exports.message = function(from, to, text, message, bot, config){
-	if(config.plugins.beer && text.toLowerCase().indexOf('beer')>-1) {
- 		 var Indx =  Math.floor(Math.random() * (beerArray.length-1));
- 		 bot.say(to, beerArray[Indx]);
-
- 	}
+function beer(text, to, from, send) {
+  var index = Math.floor(Math.random() * (beerArray.length - 1));
+  send(to, from, beerArray[index]);
 }
+
+module.exports = function(Trigger) {
+  return {
+    name: 'Beer',
+    desc: 'Displays pictures of beer',
+    message: beer,
+    trigger: Trigger.Match,
+    triggerText: /beer/i
+  };
+};

@@ -10,10 +10,17 @@ adultImageArray = [
 ]
 
 //MESSAGE EVENT
-exports.message = function(from, to, text, message, bot, config){
- 	if(config.plugins.adult && text.toLowerCase().indexOf('like an adult')>-1) {
- 		 var Indx =  Math.floor(Math.random() * (adultImageArray.length-1));
- 		 bot.say(to, adultImageArray[Indx]);
-
- 	}
+function adult(text, to, from, send) {
+  var index = Math.floor(Math.random() * (adultImageArray.length - 1));
+  send(to, from, adultImageArray[index]);
 }
+
+module.exports = function(Trigger) {
+  return {
+    name: 'Adult',
+    desc: 'Shows images of responsibility',
+    message: adult,
+    trigger: Trigger.Match,
+    triggerText: /like an adult/i
+  };
+};

@@ -1,31 +1,15 @@
-// Plugin initialization.
-exports.init = function (bot, config) {
+
+function calm(msg, to, from, send) {
+  var num = Match.floor(Math.random() * 30) + 1;
+  send(to, from, 'http://calmingmanatee.com/img/manatee' + num + '.jpg');
 }
 
-//MESSAGE EVENT
-exports.message = function(from, to, text, message, bot, config){
-	if(config.plugins.calm===true && text.toLowerCase().match(/calm down/g) !== null) {
-		var num = Math.floor(Math.random() * 30) + 1;
-		bot.say(to, 'http://calmingmanatee.com/img/manatee'+num+'.jpg');
-	}
-}
-
-//JOIN EVENT
-exports.join = function(channel, nick, message, bot, config){
-
-}
-
-//PART EVENT
-exports.part = function(channel, nick, message, bot, config){
-
-}
-
-//PART EVENT
-exports.raw = function(message, bot, config){
-
-}
-
-//ACTION EVENT
-exports.action = function(from, to, message, bot, config){
-
-}
+module.exports = function(Trigger) {
+  return {
+    name: 'Calm',
+    desc: 'Links a picture of a calming manatee',
+    message: calm,
+    trigger: Trigger.Match,
+    triggerText: /calm down/i
+  };
+};
