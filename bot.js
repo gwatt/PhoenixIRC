@@ -6,6 +6,11 @@ var Trigger = { Command: 'Command', Match: 'Match' };
 var config;
 var plugins;
 
+function load(module) {
+  delete require.cache[require.resolve(module)];
+  return require(module);
+}
+
 function say(to, from, msg) {
   bot.say(to, msg);
 }
@@ -13,7 +18,7 @@ function say(to, from, msg) {
 function loadConfig() {
   var cfg = null;
   try {
-    cfg = require('./config.js');
+    cfg = load('./config');
   } catch (e) {
     console.log('Error loading config');
     console.log(e);
@@ -24,10 +29,15 @@ function loadConfig() {
 function loadPlugin(plugin, cfg) {
   var p = null;
   try {
-    p = require('./plugins/' + plugin + '.js');
-    if (cfg && typeof p.init === 'function') {
-      p.init(cfg);
+    p = load('./plugins/' + plugin)(Trigger);
+    if (typeof cfg === 'boolean') {
+      p.active = cfg;
+    } else {
+      for (k in Object.keys(cfg)) {
+        p[k] = cfg[k];
+      }
     }
+    
   } catch(e) {
     console.log('Error loading ' + plugin);
     console.log(e);
@@ -37,16 +47,8 @@ function loadPlugin(plugin, cfg) {
 
 function loadPlugins(config) {
   var plugins = [];
-  var p;
   for (pname in config.plugins) {
-    p = null;
-    if (typeof config.plugins[pname] === 'boolean') {
-      if (config.plugins[pname]) {
-        p = loadPlugin(pname);
-      }
-    } else if (config.plugins[pname].active) {
-      p = loadPlugin(pname, config.plugins[pname]);
-    }
+    var p = loadPlugin(pname, config.plugins[pname]);
     if (p) plugins.push(p);
   }
   return plugins;
