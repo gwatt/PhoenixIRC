@@ -157,7 +157,7 @@ function help(name, to, from, send) {
       if (plugin.trigger === Trigger.Command) {
         send(to, from, 'Activate with "' + config.trigger + p.triggerText + ' <text>"');
       } else if (plugin.trigger === Trigger.Match) {
-        send(to, from, 'Activate with the text: "' + p.trigger + '"');
+        send(to, from, 'Activate with the text: "' + p.triggerText + '"');
       }
     } else {
       send(to, from, "No plugin '" + name + "' found");
