@@ -23,8 +23,8 @@ function help(to, from, msg, send) {
       send(to, from, pkg.desc);
       cmds = Object.keys(p.commands);
       if (p.commands) {
-        cmds = Object.keys(p.commands);
-        send(to, from, p.name + ' has ' + cmds.length + ' commands: ' + cmds.join(', '));
+        cmds = Object.keys(pkg.commands);
+        send(to, from, pkg.name + ' has ' + cmds.length + ' commands: ' + cmds.join(', '));
       }
       if (p.matches) {
         matches = Object.keys(p.matches);
