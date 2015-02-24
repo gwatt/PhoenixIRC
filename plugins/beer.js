@@ -19,17 +19,13 @@ beerArray = [
 ];
 
 //MESSAGE EVENT
-function beer(text, to, from, send) {
+function beer(to, from, msg, send) {
   var index = Math.floor(Math.random() * (beerArray.length - 1));
   send(to, from, beerArray[index]);
 }
 
-module.exports = function(Trigger) {
-  return {
-    name: 'Beer',
-    desc: 'Displays pictures of beer',
-    message: beer,
-    trigger: Trigger.Match,
-    triggerText: /beer/i
-  };
+exports.name = 'Beer';
+exports.desc = 'Links images of beer!';
+exports.matches = {
+  'beer': {msg: beer, desc: 'Triggers a beer image'}
 };

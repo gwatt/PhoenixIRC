@@ -1,5 +1,4 @@
-function attack() {
-	this.actions = {
+var attacks = {
 		"slap":"slaps",
 		"stab":"stabs",
 		"kick":"kicks",
@@ -19,63 +18,30 @@ function attack() {
 		"lynch":"lynches",
 		"suck":"sucks",
 		"hug":"hugs",
-		"kiss":"Kisses"
-	};
+		"kiss":"kisses"
 };
 
-attack.prototype.randAction = function() {
-	var keyArray = Object.keys(this.actions);
-	var ranNum = Math.floor(Math.random() * keyArray.length);
-	return this.actions[keyArray[ranNum]];
+function makeAttack(action) {
+  return function(to, from, msg, send) {
+    send.action(to, from, attacks[action] + ' ' + msg);
+  }
+}
+var attackFuncs = {};
+for (action in attacks) {
+  attackFuncs[action] = {
+    msg: makeAttack(action),
+    desc: attacks[action] + ' target'
+  };
 }
 
-attack.prototype.process = function(bot, to, user, attack) {
-	if(attack === 'random') {
-		bot.action(to, this.randAction() + ' ' + user);
-		return;
-	}
-	if(this.actions[attack]!== undefined) {
-		bot.action(to, this.actions[attack] + ' ' + user);
-	}
-};
-
-
-var a = new attack();
-
-// Plugin initialization.
-exports.init = function (bot, config) {
+attackFuncs.random = {
+  msg: function(to, from, msg, send) {
+    actions = Object.keys(attacks);
+    attack = attacks[actions[Math.floor(Math.random() * actions.length)]];
+    send.action(to, from, attack + ' ' + msg); },
+  desc: 'Picks a random attack'
 }
 
-//MESSAGE EVENT
-exports.message = function(from, to, text, message, bot, config){
-	//slap
-	if(config.plugins.attack===true) {
-		var tArray = text.split(' ');
-		if(tArray.length>2 &&
-			tArray[0].toLowerCase() === config.botName.toLowerCase() + ':') {
-			var userToSlap = text.split(' ').splice(2,text.length).join(' ');
-			a.process(bot, to, userToSlap, tArray[1].toLowerCase());
-		}
-	}
-
-}
-
-//JOIN EVENT
-exports.join = function(channel, nick, message, bot, config){
-
-}
-
-//PART EVENT
-exports.part = function(channel, nick, message, bot, config){
-
-}
-
-//PART EVENT
-exports.raw = function(message, bot, config){
-
-}
-
-//ACTION EVENT
-exports.action = function(from, to, message, bot, config){
-
-}
+exports.name = 'Attack';
+exports.desc = 'Assaults a target with assorted harassments';
+exports.commands = attackFuncs;

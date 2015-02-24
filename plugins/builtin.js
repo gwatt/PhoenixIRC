@@ -21,14 +21,13 @@ function help(to, from, msg, send) {
   } else if (words.length === 1) {
     if (pkg) {
       send(to, from, pkg.desc);
-      cmds = Object.keys(p.commands);
-      if (p.commands) {
+      if (pkg.commands) {
         cmds = Object.keys(pkg.commands);
         send(to, from, pkg.name + ' has ' + cmds.length + ' commands: ' + cmds.join(', '));
       }
-      if (p.matches) {
-        matches = Object.keys(p.matches);
-        send(to, from, p.name + ' has ' + matches.length + ' text triggers: ' + matches.join(', '));
+      if (pkg.matches) {
+        matches = Object.keys(pkg.matches);
+        send(to, from, pkg.name + ' has ' + matches.length + ' text triggers: /' + matches.join('/gi, /') + '/gi');
       }
     }
     else send(to, from, "No plugin: '" + words[0] + "'");
@@ -44,7 +43,7 @@ function disable(to, from, msg, send) {
   for (m of msg) {
     p = bot.plugins[m];
     if (p) {
-      if (p.permanent) send(to, from, 'Refusing to disable ' + p.name);
+      if (p.permanent) send.say(to, from, 'Refusing to disable ' + p.name);
       else if (p.active) {
         p.active = false;
         send(to, from, 'Disabled ' + p.name);
@@ -61,10 +60,15 @@ function enable(to, from, msg, send) {
     if (p) {
       if (!p.active) {
         p.active = true;
-        send(to, from, 'Enabled ', p.name);
-      } else send(to, from, p.name + ' already enabled');
-    } else send(to, from, p.name + ' not found');
+        send(to, from, 'Enabled ' + p.name);
+      } else send.say(to, from, p.name + ' already enabled');
+    } else send.say(to, from, p.name + ' not found');
   }
+}
+
+function reload(to, from, msg, send) {
+  if (!authorized(from)) return;
+  bot.reload();
 }
 
 module.exports = function(_bot) {
@@ -76,7 +80,7 @@ module.exports = function(_bot) {
       help: {msg: help, desc: 'Displays information about plugins'},
       enable: {msg: enable, desc: 'Enables disabled plugins'},
       disable: {msg: disable, desc: 'Disables enabled plugins'},
-      reload: {msg: bot.reload, desc: 'Reloads all plugins and some configuration (Name/Channel/Server is unchanged)'}
+      reload: {msg: reload, desc: 'Reloads all plugins and some configuration (Name/Channel/Server is unchanged)'}
     }
   };
 };

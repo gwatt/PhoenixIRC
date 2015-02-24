@@ -10,17 +10,13 @@ adultImageArray = [
 ]
 
 //MESSAGE EVENT
-function adult(text, to, from, send) {
+function adult(to, from, msg, send) {
   var index = Math.floor(Math.random() * (adultImageArray.length - 1));
   send(to, from, adultImageArray[index]);
 }
 
-module.exports = function(Trigger) {
-  return {
-    name: 'Adult',
-    desc: 'Shows images of responsibility',
-    message: adult,
-    trigger: Trigger.Match,
-    triggerText: /like an adult/i
-  };
+exports.name = 'Adult';
+exports.desc = 'Links images of responsiblity';
+exports.matches = {
+  'like an adult': {msg: adult, desc: 'Triggers your incoming adulthood'}
 };

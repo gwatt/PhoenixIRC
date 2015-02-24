@@ -4,14 +4,16 @@ var irc = require('./irc/irc.js');
 module.config = {};
 module.plugins = {};
 
+function makeSender(send) {
+  return function(to, from, msg) {
+    if (to === module.config.botName) bot[send](from, msg);
+    else bot[send](to, msg);
+  };
+}
+
 function load(module) {
   delete require.cache[require.resolve(module)];
   return require(module);
-}
-
-function send(to, from, msg) {
-  if (module.config.botName === to) bot.say(from, msg);
-  else bot.say(to, msg);
 }
 
 function loadConfig() {
@@ -47,7 +49,6 @@ function loadPlugins(config) {
   var plugins = {};
   for (pname of config.superPlugins) {
     var p = loadPlugin(pname)(module);
-    console.log(p);
     if (p) {
       p.active = true;
       p.permanent = true;
@@ -72,10 +73,16 @@ function handleMessage(from, to, text, msg) {
   var lwords = words.map(function (str) { return str.toLowerCase(); });
   for (p in module.plugins) {
     p = module.plugins[p];
+    if (!p.active) continue;
     for (cmd in p.commands) {
       if (module.config.trigger + cmd.toLowerCase() === lwords[0]) {
-        p.commands[cmd].msg(to, from, words.slice(1).join(' '), send);
-        return;
+        cont = false;
+        try {
+          cont = p.commands[cmd].msg(to, from, words.slice(1).join(' '), send);
+        } catch (e) {
+          console.log(e);
+        }
+        if (!cont) return;
       }
     }
     for (m in p.matches) {
@@ -98,13 +105,11 @@ function reload() {
   if (plgns) {
     module.plugins = plgns;
     console.log('Loaded plugins');
-    console.log(module.plugins);
   }
   else console.log('Unable to reload plugins');
 }
 
 module.reload = reload;
-module.exports.module = module;
 
 reload();
 if (!module.config) process.exit(1);
@@ -114,6 +119,13 @@ var bot = new irc.Client(module.config.server, module.config.botName, {
   userName:module.config.userName,
   realName:module.config.realName
 });
+
+var send = makeSender('say');
+send.action = makeSender('action');
+send.kick = makeSender('kick');
+
+module.send = send;
+module.exports = module;
 
 bot.addListener('message', handleMessage);
 bot.addListener('error', console.log);

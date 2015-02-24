@@ -1,4 +1,4 @@
-function FML(bot, to) {
+function FML(to, from, msg, send) {
 	var http = require('http');
 	var options = {
 	  host: 'ajax.googleapis.com',
@@ -16,14 +16,13 @@ function FML(bot, to) {
 	  		random = Math.round(Math.random() * js.responseData.feed.entries.length);
 			if(js.responseData.feed.entries[random] === undefined) { return; }
 	  	 	var thePost = js.responseData.feed.entries[random].content.replace(/<\/?[^>]+(>|$)/g, "");
-	  	 	bot.say(to,thePost);
+	  	 	send(to, from, thePost);
 	  });
 	});
 }
 
-//MESSAGE EVENT
-exports.message = function(from, to, text, message, bot, config){
-	if(config.plugins.fml && text.toLowerCase()=='.fml') {
-		FML(bot,to);
-	}
-}
+exports.name = 'FML';
+exports.desc = 'Displays a random post from fmylife.com';
+exports.commands = {
+  fml: {msg: FML, desc: 'Fetches a whiny post from someone who takes themselves way too seriously'}
+};
