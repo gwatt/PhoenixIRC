@@ -18,7 +18,8 @@ var attacks = {
 		"lynch":"lynches",
 		"suck":"sucks",
 		"hug":"hugs",
-		"kiss":"kisses"
+		"kiss":"kisses",
+		"murder":"murders"
 };
 
 function makeAttack(action) {

@@ -7,5 +7,6 @@ function calm(to, from, msg, send) {
 exports.name = 'Calm';
 exports.desc = 'Links a picture of a manatee to calm you down';
 exports.matches = {
-  'calm down': {msg: calm, desc: 'Picture of a manatee'}
+  'calm down': {msg: calm, desc: 'Picture of a manatee'},
+  'calm yo tits': {msg: calm, desc: 'Picture of a manatee'}
 };
